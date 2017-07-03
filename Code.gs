@@ -114,13 +114,15 @@ function createDensuke(date) {
 function sendMail(title, body) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var list = ss.getRange('ML!C1:C1000').getValues();
-
+    var address = [];
     for (var i = 1; i < list.length; i++) {
         if (list[i] == "") break;
-        var address = list[i];
+        //var address = list[i];
         Logger.log(list[i]);
-        GmailApp.sendEmail(address, title, body);
+        //GmailApp.sendEmail(address, title, body);
+        address.push(list[i]);
     }
+    GmailApp.sendEmail(address, title, body);
 }
 
 function getSchedule(date) {
