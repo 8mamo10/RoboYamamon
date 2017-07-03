@@ -132,9 +132,9 @@ function getSchedule(date) {
 
     // Yamiren entries (base is Monday)
     var entryList = [
-        [1, '20-22'],
-        [5, '11-14'],
-        [5, '20-22']
+        [1, '20-22'], // Tue 20-22
+        [5, '11-14'], // Sat 11-14
+        [5, '20-22']  // Sat 20-22
     ];
 
     for (var i = 0; i < entryList.length; i++) {
