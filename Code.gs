@@ -122,6 +122,13 @@ function sendMail(title, body) {
         //GmailApp.sendEmail(address, title, body);
         address.push(list[i]);
     }
+
+    // sender info
+    var option = {
+        //from: 'xxxxxxxx+yamiren@gmail.com',
+        name: 'イケてない闇練運営チーム'
+    };
+
     GmailApp.sendEmail(address, title, body);
 }
 
