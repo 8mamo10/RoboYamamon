@@ -49,11 +49,13 @@ function doAnnounce() {
     errorReport("メールの作成に失敗しました。");
     return;
   }
-  sendMail(title, body);
-  Logger.log('闇練メールの配信を正常終了しました。');
+  // 20200720: not send mail, but send line instead
+  //sendMail(title, body);
+  //Logger.log('闇練メールの配信を正常終了しました。');
 
   // line
-  var lineText = getLineText(formattedDate, url);
+  var lineBody = getMailBody(formattedDate, text, url);
+  var lineText = getLineText(formattedDate, lineBody, url);
   //Logger.log(lineText);
   sendLine(lineText);
   Logger.log('LINE の配信を正常終了しました。');
@@ -64,7 +66,7 @@ function getMailTitle(date) {
 }
 
 function getMailBody(date, text, url) {
-  var prefix = '闇練ジャーの皆様\n\nおはようございます。松田です。\n\n';
+  var prefix = '闇練ジャーの皆様\n\nおはようございます。[Sender]です。\n\n';
   var suffix = '\n\n伝助へ予定入力お願いします。\n\n';
   var ad = '\n-----\n[Sender]';
 
@@ -151,11 +153,17 @@ function getSchedule(date) {
   //date = '2017/07/03';
 
   // Yamiren entries (base is Monday)
+  //var entryList = [
+  //  [1, '20-22'], // Tue 20-22
+  //  [5, '8-14'], // Sat 8-14
+  //  [5, '20-22（全体練習）']  // Sat 20-22
+  //];
+
   var entryList = [
-    [1, '20-22'], // Tue 20-22
-    [5, '8-14'], // Sat 8-14
-    [5, '20-22（全体練習）']  // Sat 20-22
+    [1, '20-22時 New World Hotel'], // Tue 20-22
+    [5, '10-13時 4区定練コート'], // Sat 10-13
   ];
+
   
   for (var i = 0; i < entryList.length; i++) {
     entry = entryList[i];
@@ -178,13 +186,14 @@ function errorReport(msg) {
   GmailApp.sendEmail('xxxxxxxx+yamiren@gmail.com', '闇練メール配信エラー', msg);
 }
 
-function getLineText(date, url) {
-  return getMailTitle(date) + '\n' + url;
+function getLineText(date, text, url) {
+  return getMailTitle(date) + '\n' + text;
 }
 
 function sendLine(text) {
   var headers = {
-    'Authorization': '[LINE Notify token]'
+    //'Authorization': 'Bearer xxxxxxxx' // sandbox
+    'Authorization': 'Bearer yyyyyyyy' // official
   };
   var payload = "message=" + text;
   var options = {
