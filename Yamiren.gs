@@ -26,7 +26,7 @@ function doAnnounce() {
   // title
   var title = getMailTitle(formattedDate);
   Logger.log(title);
-  
+
   var text = ss.getRange('Schedule!B' + index).getValue();
   Logger.log(text);
 
@@ -34,13 +34,13 @@ function doAnnounce() {
   var url = createDensuke(formattedDate);
   if (url == null) {
     errorReport("densuke の作成に失敗しました。");
-    return null;    
+    return null;
   }
   //Logger.log(url);
 
   // store densuke url
   ss.getRange('Schedule!C' + index).setValue(url);
-  
+
   // body
   var body = getMailBody(formattedDate, text, url);
   //Logger.log(body);
@@ -62,11 +62,20 @@ function doAnnounce() {
 }
 
 function getMailTitle(date) {
-  return '闇練 ' + date + ' 週';
+  //return '闇練 ' + date + ' 週';
+  var origin = new Date(date);
+  var originYear = origin.getYear();
+  var originMonth = origin.getMonth();
+  var nextMonth = (originMonth + 2) % 12;
+  var nextYear = 1900 + originYear;
+  if (nextMonth == 1) {
+    nextYear++;
+  }
+  return '闇練 ' + nextYear + '年' + nextMonth + '月';
 }
 
 function getMailBody(date, text, url) {
-  var prefix = '闇練ジャーの皆様\n\nおはようございます。[Sender]です。\n\n';
+  var prefix = '闇練ジャーの皆様\n\nおつかれさまです。[Sender]です。\n来月の練習予定をご連絡します。\n\n';
   var suffix = '\n\n伝助へ予定入力お願いします。\n\n';
   var ad = '\n-----\n[Sender]';
 
@@ -77,7 +86,7 @@ function createDensuke(date) {
 
   var formData = {
     'eventname'   : getMailTitle(date),
-    'schedule'    : getSchedule(date),
+    'schedule'    : getMonthlySchedule(date),
     'explain'     : getMailTitle(date),
     'email'       : 'xxxxxxxx+densuke@gmail.com',
     'pw'          : 0,
@@ -92,13 +101,13 @@ function createDensuke(date) {
 
   // see request
   /*
-    var response = UrlFetchApp.getRequest('https://www.densuke.biz/create', options);
-    for(i in response) {
-    Logger.log(i + ": " + response[i]);
-    }
-    return "";
+  var response = UrlFetchApp.getRequest('https://www.densuke.biz/create', options);
+  for(i in response) {
+  Logger.log(i + ": " + response[i]);
+  }
+  return "";
   */
-  
+
   var response = UrlFetchApp.fetch('https://www.densuke.biz/create', options);
   //Logger.log(response);
   var headers = response.getAllHeaders();
@@ -118,7 +127,7 @@ function createDensuke(date) {
   var cd = result[0].slice(0, -3); // cut &sd
   var url = 'http://densuke.biz/list?' + cd;
   //Logger.log(url);
-  
+
   return url;
 }
 
@@ -147,7 +156,7 @@ function sendMail(title, body) {
   GmailApp.sendEmail(address, title, body, options);
 }
 
-function getSchedule(date) {
+function getWeeklySchedule(date) {
   var schedule = "";
   // dummy date
   //date = '2017/07/03';
@@ -160,11 +169,10 @@ function getSchedule(date) {
   //];
 
   var entryList = [
-    [1, '20-22時 New World Hotel'], // Tue 20-22
-    [5, '10-13時 4区定練コート'], // Sat 10-13
+    [1, '20-22時'], // Tue 20-22
+    [5, '10-13時'], // Sat 10-13
   ];
 
-  
   for (var i = 0; i < entryList.length; i++) {
     entry = entryList[i];
     var diff = entry[0];
@@ -180,6 +188,44 @@ function getSchedule(date) {
 
   return schedule;
 }
+
+function getMonthlySchedule(date) {
+  var schedule = "";
+  // dummy date
+  //date = '2020/12/25';
+  var origin = new Date(date);
+  var originYear = origin.getYear();
+  //Logger.log(originYear);
+  var originMonth = origin.getMonth();
+  //Logger.log(originMonth);
+  var nextMonth = (originMonth + 2) % 12;
+  //Logger.log(nextMonth);
+  var nextYear = 1900 + originYear;
+  if (nextMonth == 1) {
+    nextYear++;
+  }
+  //Logger.log(nextYear);
+
+  for (var i = 1; i <= 31; i++) {
+    var strDate = nextYear + '/' + nextMonth + '/' + i;
+    //Logger.log(strDate);
+    var timestamp = Date.parse(strDate);
+    if (isNaN(timestamp)) continue;
+
+    var aDate = new Date(strDate);
+    var dow = aDate.getDay();
+    if (dow == 2) {
+      var formattedDate = Utilities.formatDate(aDate, 'VST', 'MM/dd(EEE)');
+      schedule += formattedDate + ' 20-22時\n';
+    } else if (dow == 6) {
+      var formattedDate = Utilities.formatDate(aDate, 'VST', 'MM/dd(EEE)');
+      schedule += formattedDate + ' 10-13時\n';
+    }
+  }
+  Logger.log(schedule);
+  return schedule;
+}
+
 
 function errorReport(msg) {
   Logger.log(msg);
@@ -201,5 +247,5 @@ function sendLine(text) {
     'headers' : headers,
     'payload' : payload
   };
-  var responrt = UrlFetchApp.fetch("https://notify-api.line.me/api/notify", options);
+  var response = UrlFetchApp.fetch("https://notify-api.line.me/api/notify", options);
 }
